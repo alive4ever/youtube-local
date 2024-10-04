@@ -660,17 +660,11 @@ def to_valid_filename(name):
 INNERTUBE_CLIENTS = {
     'android': {
         'INNERTUBE_API_KEY': 'AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w',
+        'INNERTUBE_HOST': 'youtubei.googleapis.com',
         'INNERTUBE_CONTEXT': {
             'client': {
-                'hl': 'en',
-                'gl': 'US',
                 'clientName': 'ANDROID',
-                'clientVersion': '19.09.36',
-                'osName': 'Android',
-                'osVersion': '12',
-                'androidSdkVersion': 31,
-                'platform': 'MOBILE',
-                'userAgent': 'com.google.android.youtube/19.09.36 (Linux; U; Android 12; US) gzip'
+                'clientVersion': '19.17.34',
             },
             # https://github.com/yt-dlp/yt-dlp/pull/575#issuecomment-887739287
             #'thirdParty': {
@@ -683,6 +677,7 @@ INNERTUBE_CLIENTS = {
 
     'android-test-suite': {
         'INNERTUBE_API_KEY': 'AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w',
+        'INNERTUBE_HOST': 'youtubei.googleapis.com',
         'INNERTUBE_CONTEXT': {
             'client': {
                 'hl': 'en',
@@ -764,11 +759,11 @@ def call_youtube_api(client, api, data):
     host = client_params.get('INNERTUBE_HOST') or 'www.youtube.com'
     user_agent = context['client'].get('userAgent') or mobile_user_agent
 
-    url = 'https://' + host + '/youtubei/v1/' + api + '?key=' + key
+    url = 'https://' + host + '/youtubei/v1/' + api
     data['context'] = context
 
     data = json.dumps(data)
-    headers = (('Content-Type', 'application/json'),('User-Agent', user_agent))
+    headers = (('Content-Type', 'application/json'),('User-Agent', user_agent), ('X-Goog-Api-Format-Version', '1'), ('X-YouTube-Client-Name', client_params['INNERTUBE_CONTEXT_CLIENT_NAME']), ('X-YouTube-Client-Version', context['client'].get('clientVersion')))
     response = fetch_url(
         url, data=data, headers=headers,
         debug_name='youtubei_' + api + '_' + client,
