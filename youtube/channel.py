@@ -30,6 +30,7 @@ headers_mobile = (
     ('X-YouTube-Client-Name', '2'),
     ('X-YouTube-Client-Version', '2.20180830'),
 ) + util.mobile_ua
+headers_client = util.client_xhr_headers
 real_cookie = (('Cookie', 'VISITOR_INFO1_LIVE=8XihrAcN1l4'),)
 generic_cookie = (('Cookie', 'VISITOR_INFO1_LIVE=ST1Ti53r4fU'),)
 
@@ -279,12 +280,8 @@ def get_number_of_videos_channel(channel_id):
         return 1000
     number_of_videos = None
     try:
-        pl_json = playlist.playlist_first_page(
-            'UU' + channel_id[2:],    # Uploads playlist
-            report_text='Requested number of videos'
-        )
-        pl_info = yt_data_extract.extract_playlist_info(pl_json)
-        number_of_videos = yt_data_extract.num_videos_from_uploads_playlist_info(pl_info)
+        response = util.fetch_url(url, headers_client,
+            debug_name='number_of_videos', report_text='Got number of videos')
     except (urllib.error.HTTPError, util.FetchError) as e:
         traceback.print_exc()
     if number_of_videos is None:
