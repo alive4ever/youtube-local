@@ -18,7 +18,7 @@ jobs:
           wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources | sudo dd of=/etc/apt/sources.list.d/winehq-jammy.sources
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full xserver-xorg-video-dummy
+          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full xvfb
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
@@ -27,11 +27,11 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          cp -v xorg-dummy-1920x1080.conf ~/.xorg.conf
-          X -config ~/.xorg.conf > /tmp/Xorg.log 2> /tmp/Xorg-error.log &
+          Xvfb :0 -screen 0 1024x768x24 &
+          sleep 1
           export DISPLAY=":0"
           export WINEARCH="win64"
-          python3 ./generate_release.py 3.12.7
+          python3 ./generate_release.py 3.13.0
           mkdir -p /tmp/output
           cp -v *zip /tmp/output/
       - name: Uploading build artifacts
