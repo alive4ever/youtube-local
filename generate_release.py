@@ -92,7 +92,7 @@ if os.path.exists('./youtube-local'):
 # confused with working directory. I'm calling it the same thing so it will
 # have that name when extracted from the final release zip archive)
 log('Making copy of youtube-local files')
-check(os.system('git archive --format tar master | 7z x -si -ttar -oyoutube-local'))
+check(os.system('git archive --format tar HEAD | 7z x -si -ttar -oyoutube-local'))
 
 if len(os.listdir('./youtube-local')) == 0:
     raise Exception('Failed to copy youtube-local files')
