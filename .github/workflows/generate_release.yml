@@ -12,11 +12,9 @@ jobs:
       - name: Preparing packages
         id: packages-preparation
         run: |
-          sudo dpkg --add-architecture i386
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y libc6:i386 libgcc-s1:i386 libstdc++6:i386 libgomp1:i386 libatomic1:i386
-          sudo apt install -y --install-recommends wine wine32 p7zip p7zip-full xserver-xorg-video-dummy
+          sudo apt install -y --install-recommends wine wine64 p7zip p7zip-full xserver-xorg-video-dummy
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
@@ -28,6 +26,7 @@ jobs:
           cp -v xorg-dummy-1920x1080.conf ~/.xorg.conf
           X -config ~/.xorg.conf > /tmp/Xorg.log 2> /tmp/Xorg-error.log &
           export DISPLAY=":0"
+          export WINEARCH="win64"
           python3 ./generate_release.py 3.12.7
           mkdir -p /tmp/output
           cp -v *zip /tmp/output/
