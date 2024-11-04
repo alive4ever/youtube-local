@@ -31,7 +31,8 @@ jobs:
           sleep 1
           export DISPLAY=":0"
           export WINEARCH="win64"
-          python3 ./generate_release.py 3.13.0
+          export WINEDEBUG="warn,+pid"
+          python3 ./generate_release.py 3.11.9
           mkdir -p /tmp/output
           cp -v *zip /tmp/output/
       - name: Uploading build artifacts
