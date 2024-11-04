@@ -12,9 +12,13 @@ jobs:
       - name: Preparing packages
         id: packages-preparation
         run: |
+          sudo dpkg --add-architecture i386
+          sudo mkdir -pm755 /etc/apt/keyrings
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | sudo dd of=/etc/apt/keyrings/winehq-archive.key 
+          wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources | sudo dd of=/etc/apt/sources.list.d/winehq-jammy.sources
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y --install-recommends wine wine64 p7zip p7zip-full xserver-xorg-video-dummy
+          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full xserver-xorg-video-dummy
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
