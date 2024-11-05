@@ -220,7 +220,7 @@ remove_files_with_extensions(r'./python', ['.pyc'])
 log('Removing dist-info and __pycache__')
 for root, dirs, files in os.walk(r'./python'):
     for dir in dirs:
-        if dir == '__pycache__' or dir.endswith('.dist-info'):
+        if dir == '__pycache__':
             shutil.rmtree(os.path.join(root, dir))
 
 
