@@ -18,7 +18,7 @@ jobs:
           wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources | sudo dd of=/etc/apt/sources.list.d/winehq-jammy.sources
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full xvfb
+          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
@@ -27,11 +27,6 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          Xvfb :0 -screen 0 1024x768x24 &
-          sleep 1
-          export DISPLAY=":0"
-          export WINEARCH="win64"
-          export WINEDEBUG="warn,+pid"
           python3 ./generate_release.py 3.11.9
           mkdir -p /tmp/output
           cp -v *zip /tmp/output/
