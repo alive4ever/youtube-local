@@ -9,7 +9,7 @@ import json
 import urllib.parse
 import traceback
 import re
-import jsengine
+import dukpy
 import os
 import settings
 from .. import util
@@ -1099,6 +1099,9 @@ def extract_nsig_func(base_js):
         return None
 
 def decrypt_n_signature(n_sig, jscode):
-    quickjs_session = jsengine.JSEngine(jscode)
-    n_sig_result = quickjs_session.call('decrypt_nsig', n_sig)
+    dukpy_session = dukpy.JSInterpreter()
+    # Loading the function into dukpy session
+    dukpy_session.evaljs(jscode)
+    #n_sig_result = dukpy_session.evaljs('decrypt_nsig("' + n_sig + '")')
+    n_sig_result = dukpy_session.evaljs("decrypt_nsig(dukpy['n'])", n=n_sig)
     return n_sig_result
