@@ -1099,6 +1099,6 @@ def extract_nsig_func(base_js):
         return None
 
 def decrypt_n_signature(n_sig, jscode):
-    quickjs_session = jsengine.QuickJSEngine(jscode)
+    quickjs_session = jsengine.JSEngine(jscode)
     n_sig_result = quickjs_session.call('decrypt_nsig', n_sig)
     return n_sig_result
