@@ -368,7 +368,6 @@ def _add_to_error(info, key, additional_message):
 def fetch_player_response(client, video_id):
     api_data = {
         'videoId': video_id,
-        'params': 'CgIQBg==',
     }
     if settings.allow_age_restricted_content:
         api_data['racyCheckOk'] = 'true'
