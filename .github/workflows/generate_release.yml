@@ -1,0 +1,43 @@
+name: Generate release for youtube-local
+run-name: ${{ github.actor }} is creating release for youtube-local
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  generate-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preparing packages
+        id: packages-preparation
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo mkdir -pm755 /etc/apt/keyrings
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | sudo dd of=/etc/apt/keyrings/winehq-archive.key 
+          wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources | sudo dd of=/etc/apt/sources.list.d/winehq-jammy.sources
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full
+          echo "Wine and 7zip is installed"
+      - name: Preparing repository
+        id: repository-preparation
+        uses: actions/checkout@v4
+      - name: Generating release
+        id: generating-release
+        run: |
+          cd ${{ github.workspace }}
+          python3 ./generate_release.py 3.11.9
+          mkdir -p /tmp/output
+          cp -v youtube-local*zip /tmp/output/
+      - name: Uploading build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip-package
+          path: /tmp/output/
+      - name: Creating youtube-local release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            /tmp/output/*
