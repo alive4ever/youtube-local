@@ -752,7 +752,7 @@ INNERTUBE_CLIENTS = {
         'INNERTUBE_CONTEXT': {
             'client': {
                 'clientName': 'WEB',
-                'clientVersion': '2.20240726.00.00',
+                'clientVersion': '2.20241126.01.00',
                 'userAgent': desktop_user_agent,
             }
         },
@@ -765,7 +765,7 @@ INNERTUBE_CLIENTS = {
         'INNERTUBE_CONTEXT': {
             'client': {
                 'clientName': 'WEB_CREATOR',
-                'clientVersion': '1.20240723.03.00',
+                'clientVersion': '1.20241203.01.00',
                 'userAgent': desktop_user_agent,
             },
         },
@@ -779,7 +779,8 @@ INNERTUBE_CLIENTS = {
         'INNERTUBE_CONTEXT': {
             'client': {
                 'clientName': 'MWEB',
-                'clientVersion': '2.20240726.01.00',
+                'clientVersion': '2.20241202.07.00',
+                'userAgent': mobile_user_agent,
             },
         },
         'INNERTUBE_CONTEXT_CLIENT_NAME': 2,
