@@ -25,7 +25,7 @@ jobs:
           sudo systemctl daemon-reload
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full xvfb
+          sudo apt install -y --install-recommends winehq-devel p7zip p7zip-full xvfb
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
