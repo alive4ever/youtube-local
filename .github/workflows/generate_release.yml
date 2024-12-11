@@ -33,11 +33,11 @@ jobs:
           Xvfb :0 -screen 0 1024x768x16 &
           cd ${{ github.workspace }}
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
-          DISPLAY=:0.0 wine ./python-3.13.1-amd64.exe /passive /quiet PrependPath=1
+          DISPLAY=:0.0 wine cmd /c ./python-3.13.1-amd64.exe /passive /quiet PrependPath=1
           python3 ./generate_release.py 3.13.1
           rm -rf ~/.wine
           curl -LO "https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
-          DISPLAY=:0.0 wine ./python-3.8.10.exe /passive /quiet PrependPath=1
+          DISPLAY=:0.0 wine cmd /c ./python-3.8.10.exe /passive /quiet PrependPath=1
           python3 ./generate_release.py oldwin
           mkdir -p /tmp/output
           cp -v youtube-local*zip /tmp/output/
