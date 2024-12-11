@@ -32,19 +32,15 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          xvfb-run wineboot --init
+          wineboot --init
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
           xvfb-run wine ./python-3.13.1-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
-          xvfb-run python3 ./generate_release.py 3.13.1
-          xvfb-run wineboot -e
-          xvfb-run wineboot -s
+          python3 ./generate_release.py 3.13.1
           rm -rf "$WINEPREFIX"
-          xvfb-run wineboot --init
+          wineboot --init
           curl -LO "https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
           xvfb-run wine ./python-3.8.10.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
-          xvfb-run python3 ./generate_release.py oldwin
-          xvfb-run wineboot -e
-          xvfb-run wineboot -s
+          python3 ./generate_release.py oldwin
           mkdir -p /tmp/output
           cp -v youtube-local*zip /tmp/output/
       - name: Uploading build artifacts
