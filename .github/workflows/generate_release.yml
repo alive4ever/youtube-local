@@ -14,6 +14,7 @@ jobs:
         run: |
           echo "DIST_CODENAME=$(lsb_release -c | awk '{print $2}')" >> "$GITHUB_ENV" 
           echo "WINEPREFIX=$HOME/winepython" >> "$GITHUB_ENV"
+          echo "DISPLAY=:1" >> "$GITHUB_ENV"
       - name: Preparing packages
         id: packages-preparation
         run: |
@@ -21,6 +22,7 @@ jobs:
           sudo mkdir -pm755 /etc/apt/keyrings
           wget -O - https://dl.winehq.org/wine-builds/winehq.key | sudo dd of=/etc/apt/keyrings/winehq-archive.key 
           wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/"$DIST_CODENAME"/winehq-"$DIST_CODENAME".sources | sudo dd of=/etc/apt/sources.list.d/winehq-"$DIST_CODENAME".sources
+          sudo systemctl daemon-reload
           sudo apt update
           sudo apt upgrade -y
           sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full xvfb
@@ -32,12 +34,14 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          wineboot --init
+          curl -LO "https://dl.winehq.org/wine/wine-mono/9.4.0/wine-mono-9.4.0-x86.msi"
+          wineboot -u
+          msiexec /i wine-mono-9.4.0-x86.msi
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
           xvfb-run wine ./python-3.13.1-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py 3.13.1
+          wineboot -e
           rm -rf "$WINEPREFIX"
-          wineboot --init
           curl -LO "https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
           xvfb-run wine ./python-3.8.10.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py oldwin
