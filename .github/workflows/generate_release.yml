@@ -13,7 +13,7 @@ jobs:
         id: get-ubuntu-version
         run: |
           echo "DIST_CODENAME=$(lsb_release -c | awk '{print $2}')" >> "$GITHUB_ENV" 
-          echo "WINEPREFIX=$HOME/.wine" >> "$GITHUB_ENV"
+          echo "WINEPREFIX=$HOME/winepython" >> "$GITHUB_ENV"
       - name: Preparing packages
         id: packages-preparation
         run: |
@@ -32,10 +32,12 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
+          wineboot --init
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
           xvfb-run wine ./python-3.13.1-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py 3.13.1
-          rm -rf ~/.wine
+          rm -rf "$WINEPREFIX"
+          wineboot --init
           curl -LO "https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
           xvfb-run wine ./python-3.8.10.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py oldwin
