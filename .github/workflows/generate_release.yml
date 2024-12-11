@@ -13,6 +13,7 @@ jobs:
         id: get-ubuntu-version
         run: |
           echo "DIST_CODENAME=$(lsb_release -c | awk '{print $2}')" >> "$GITHUB_ENV" 
+          echo "WINEPREFIX=$HOME/.wine" >> "$GITHUB_ENV"
       - name: Preparing packages
         id: packages-preparation
         run: |
