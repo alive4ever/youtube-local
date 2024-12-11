@@ -20,7 +20,7 @@ else:
 
 if latest_version == 'oldwin':
     bitness = '32'
-    latest_version = '3.7.9'
+    latest_version = '3.8.10'
     suffix = 'windows-vista-7-only'
 else:
     suffix = 'windows'
