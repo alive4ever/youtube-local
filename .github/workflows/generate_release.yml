@@ -34,16 +34,17 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          Xvfb :1 -screen 0 1024x768x24 &
           curl -LO "https://dl.winehq.org/wine/wine-mono/9.4.0/wine-mono-9.4.0-x86.msi"
           msiexec /i /q wine-mono-9.4.0-x86.msi
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
+          Xvfb :1 -screen 0 1024x768x24 &
           wineconsole ./python-3.13.1-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py 3.13.1
           rm -rf "$WINEPREFIX"
           curl -LO "https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
           wineconsole ./python-3.8.10.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py oldwin
+          pkill Xvfb
           mkdir -p /tmp/output
           cp -v youtube-local*zip /tmp/output/
       - name: Uploading build artifacts
