@@ -35,6 +35,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           curl -LO "https://dl.winehq.org/wine/wine-mono/9.4.0/wine-mono-9.4.0-x86.msi"
+          wineboot -u
           msiexec /i /q wine-mono-9.4.0-x86.msi
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
           Xvfb :1 -screen 0 1024x768x24 &
