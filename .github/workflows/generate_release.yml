@@ -14,7 +14,6 @@ jobs:
         run: |
           echo "DIST_CODENAME=$(lsb_release -c | awk '{print $2}')" >> "$GITHUB_ENV" 
           echo "WINEPREFIX=$HOME/winepython" >> "$GITHUB_ENV"
-          echo "DISPLAY=:1" >> "$GITHUB_ENV"
       - name: Preparing packages
         id: packages-preparation
         run: |
@@ -39,11 +38,11 @@ jobs:
           msiexec /i /q wine-mono-9.4.0-x86.msi
           curl -LO "https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe"
           Xvfb :1 -screen 0 1024x768x24 &
-          wineconsole ./python-3.13.1-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
+          DISPLAY=:1 wineconsole ./python-3.13.1-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py 3.13.1
           rm -rf "$WINEPREFIX"
           curl -LO "https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe"
-          wineconsole ./python-3.8.10.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
+          DISPLAY=:1 wineconsole ./python-3.8.10.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 SimpleInstall=1 /nogui
           python3 ./generate_release.py oldwin
           pkill Xvfb
           mkdir -p /tmp/output
