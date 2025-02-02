@@ -317,6 +317,14 @@ Archive: https://archive.ph/OZQbN''',
         'category': 'network',
         }),
 
+    ('googlevideo_use_post', {
+        'label': 'Use post to get video from gvs',
+        'type': bool,
+        'default': True,
+        'comment': 'Use post with specific body payload to access video from gvs',
+        'category': 'network',
+        }),
+
     ('proxy_images', {
         'label': 'Route images',
         'type': bool,
