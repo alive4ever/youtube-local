@@ -301,6 +301,14 @@ Archive: https://archive.ph/OZQbN''',
         'category': 'network',
         }),
 
+    ('use_httpx', {
+        'label': 'Use httpx library',
+        'type': bool,
+        'default': True,
+        'comment': 'Use httpx for web requests',
+        'category': 'network',
+        }),
+
     ('proxy_images', {
         'label': 'Route images',
         'type': bool,
