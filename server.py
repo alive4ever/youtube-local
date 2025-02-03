@@ -54,6 +54,18 @@ def parse_range(range_header, content_length):
 innertube_client_id = settings.innertube_client_id
 innertube_client = util.innertube_client
 client = innertube_client[innertube_client_id]
+
+def remove_hop_by_hop_headers(response):
+    # Define the hop-by-hop headers to remove in a list
+    hop_by_hop_headers = ['Connection', 'Keep-Alive', 'Proxy-Authenticate', 'Proxy-Authorization', 'TE']
+
+    # Create a list of headers to remove (case insensitive)
+    headers_to_remove = [header for header in response.headers if header.lower() in (h.lower() for h in hop_by_hop_headers)]
+
+    # Remove the headers from the response
+    for header in headers_to_remove:
+        del response.headers[header]
+
 def proxy_site(env, start_response, video=False):
     client_params = util.INNERTUBE_CLIENTS[client]
     client_context = client_params['INNERTUBE_CONTEXT']
@@ -95,6 +107,7 @@ def proxy_site(env, start_response, video=False):
         else:
             response, cleanup_func = util.fetch_url_response(url, send_headers)
 
+        remove_hop_by_hop_headers(response)
         response_headers = response.headers
         #if isinstance(response_headers, urllib3._collections.HTTPHeaderDict):
         #   response_headers = response_headers.items()
