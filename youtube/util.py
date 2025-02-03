@@ -18,6 +18,8 @@ import collections
 import stem
 import stem.control
 import traceback
+if settings.use_httpx:
+    import httpx
 
 # The trouble with the requests library: It ships its own certificate bundle via certifi
 #  instead of using the system certificate store, meaning self-signed certificates
@@ -55,6 +57,8 @@ import urllib3.contrib.socks
 URL_ORIGIN = "/https://www.youtube.com"
 
 connection_pool = urllib3.PoolManager(cert_reqs = 'CERT_REQUIRED')
+if settings.use_httpx:
+    httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10)
 
 class TorManager:
     MAX_TRIES = 3
@@ -242,6 +246,22 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
         elif not isinstance(data, bytes):
             data = urllib.parse.urlencode(data).encode('utf-8')
 
+    if settings.use_httpx:
+        for key, value in headers.items():
+            if not isinstance(value, str):
+                headers[key] = str(value)
+        if data:
+            if isinstance(data, bytes):
+                response = httpx_client.request(method, url, content=data, headers=headers)
+            elif isinstance(data, str):
+                response = httpx_client.request(method, url, data=data, headers=headers)
+        else:
+            response = httpx_client.request(method, url, headers=headers)
+        response.status = response.status_code
+        response.reason = response.reason_phrase
+        response.getheader = (lambda name: response.headers.get(name))
+        cleanup_func = (lambda r: response.close())
+        return response, cleanup_func
 
     if cookiejar_send is not None or cookiejar_receive is not None:     # Use urllib
         req = urllib.request.Request(url, data=data, headers=headers)
@@ -309,9 +329,10 @@ def fetch_url(url, headers=(), timeout=15, report_text=None, data=None,
         read_finish = time.monotonic()
 
         cleanup_func(response)  # release_connection for urllib3
-        content = decode_content(
-            content,
-            response.getheader('Content-Encoding', default='identity'))
+        if not settings.use_httpx:
+            content = decode_content(
+                content,
+                response.getheader('Content-Encoding', default='identity'))
 
         if (settings.debugging_save_responses
                 and debug_name is not None
@@ -1004,9 +1025,7 @@ def call_youtube_api(client, api, data):
                ('User-Agent', user_agent),
                ('X-Goog-Api-Format-Version', '1'),
                ('X-YouTube-Client-Name',
-                client_params['INNERTUBE_CONTEXT_CLIENT_NAME']),
-               ('X-YouTube-Client-Version',
-                context['client'].get('clientVersion')))
+                client_params['INNERTUBE_CONTEXT_CLIENT_NAME']))
     # Only send visitor_data_header if not using ytcfg
     if not ytcfg:
         if visitor_data_header:
