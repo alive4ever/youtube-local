@@ -274,29 +274,30 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
                 headers[key] = str(value)
         # Load cookies
         cookie_file = os.path.join(settings.data_dir, 'cookies.pk')
-        if os.path.isfile(cookie_file):
-            session_cookies = load_cookies(cookie_file)
-            session_cookies_orig = copy.copy(session_cookies.jar._cookies)
-        else:
-            session_cookies = None
+        def _load_cookies(cookie_file):
+            if os.path.isfile(cookie_file):
+                session_cookies = load_cookies(cookie_file)
+            else:
+                session_cookies = None
+            return session_cookies
 
         if data:
             if isinstance(data, bytes):
-                response = httpx_client.request(method, url, content=data, headers=headers, cookies=session_cookies)
+                request = httpx_client.build_request(method, url, content=data, headers=headers, cookies=_load_cookies(cookie_file))
             elif isinstance(data, str):
-                response = httpx_client.request(method, url, data=data, headers=headers, cookies=session_cookies)
+                request = httpx_client.build_request(method, url, data=data, headers=headers, cookies=_load_cookies(cookie_file))
         else:
-            response = httpx_client.request(method, url, headers=headers, cookies=session_cookies)
+            request = httpx_client.build_request(method, url, headers=headers, cookies=_load_cookies(cookie_file))
+        response = httpx_client.send(request)
         response.status = response.status_code
         response.reason = response.reason_phrase
         # Save response.cookies
-        if session_cookies:
-            if session_cookies_orig != httpx_client.cookies.jar._cookies:
-                print('Saving updated cookies')
-                save_cookies(cookie_file=cookie_file)
+        if not os.path.isdir(settings.data_dir):
+            os.makedirs(settings.data_dir)
+        if len(response.cookies) > 0:
+            print('Saving updated cookies')
+            save_cookies(cookie_file=cookie_file)
         else:
-            if not os.path.isdir(settings.data_dir):
-                os.makedirs(settings.data_dir)
             print('Creating cookie file')
             save_cookies(cookie_file=cookie_file)
         response.getheader = (lambda name: response.headers.get(name))
