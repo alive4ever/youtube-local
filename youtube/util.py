@@ -19,7 +19,9 @@ import stem
 import stem.control
 import traceback
 if settings.use_httpx:
+    import pickle
     import httpx
+    import copy
 
 # The trouble with the requests library: It ships its own certificate bundle via certifi
 #  instead of using the system certificate store, meaning self-signed certificates
@@ -219,6 +221,22 @@ def decode_content(content, encoding_header):
             content = gzip.decompress(content)
     return content
 
+def save_cookies(cookie_file):
+	with open(cookie_file, "wb") as f:
+		pickle.dump(httpx_client.cookies.jar._cookies, f)
+
+def load_cookies(cookie_file):
+	if not os.path.isfile(cookie_file):
+		return None
+	cookies = httpx_client.cookies
+	with open(cookie_file, "rb") as f:
+		jar_cookies = pickle.load(f)
+	for domain , pc in jar_cookies.items():
+		for path, c in pc.items():
+			for k, v in c.items():
+				cookies.set(k, v.value, domain=domain, path=path)
+	return cookies
+
 def fetch_url_response(url, headers=(), timeout=15, data=None,
                        cookiejar_send=None, cookiejar_receive=None,
                        use_tor=True, max_redirects=None):
@@ -254,15 +272,31 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
         for key, value in headers.items():
             if not isinstance(value, str):
                 headers[key] = str(value)
+        # Load cookies
+        cookie_file = os.path.join(settings.data_dir, 'cookies.pk')
+        if os.path.isfile(cookie_file):
+            session_cookies = load_cookies(cookie_file)
+            session_cookies_orig = copy.copy(session_cookies.jar._cookies)
+        else:
+            session_cookies = None
+
         if data:
             if isinstance(data, bytes):
-                response = httpx_client.request(method, url, content=data, headers=headers)
+                response = httpx_client.request(method, url, content=data, headers=headers, cookies=session_cookies)
             elif isinstance(data, str):
-                response = httpx_client.request(method, url, data=data, headers=headers)
+                response = httpx_client.request(method, url, data=data, headers=headers, cookies=session_cookies)
         else:
-            response = httpx_client.request(method, url, headers=headers)
+            response = httpx_client.request(method, url, headers=headers, cookies=session_cookies)
         response.status = response.status_code
         response.reason = response.reason_phrase
+        # Save response.cookies
+        if session_cookies:
+            if session_cookies_orig != httpx_client.cookies.jar._cookies:
+                print('Saving updated cookies')
+                save_cookies(cookie_file=cookie_file)
+        else:
+            print('Creating cookie file')
+            save_cookies(cookie_file=cookie_file)
         response.getheader = (lambda name: response.headers.get(name))
         cleanup_func = (lambda r: response.close())
         return response, cleanup_func
