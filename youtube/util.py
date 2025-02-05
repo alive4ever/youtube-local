@@ -58,7 +58,11 @@ URL_ORIGIN = "/https://www.youtube.com"
 
 connection_pool = urllib3.PoolManager(cert_reqs = 'CERT_REQUIRED')
 if settings.use_httpx:
-    httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10)
+    if settings.route_tor == 0:
+        httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10)
+    else:
+        httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10, proxy=f'socks5://localhost:{settings.tor_port}')
+
 
 class TorManager:
     MAX_TRIES = 3
