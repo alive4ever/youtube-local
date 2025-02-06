@@ -90,8 +90,6 @@ def proxy_site(env, start_response, video=False):
     if env['QUERY_STRING']:
         url += '?' + env['QUERY_STRING']
 
-
-
     try_num = 1
     first_attempt = True
     current_attempt_position = 0
@@ -108,7 +106,6 @@ def proxy_site(env, start_response, video=False):
                                                                  use_tor=use_tor,
                                                                  max_redirects=10)
             else:
-                print('Using post to get video from gvs')
                 payload = bytearray([0x78, 0])
                 range_header = None
                 for item in send_headers:
@@ -116,7 +113,6 @@ def proxy_site(env, start_response, video=False):
                         range_header = item
                 if range_header:
                     range_param = send_headers.get(range_header).split('=')[1]
-                    print(f'Getting video segment of {range_param}')
                     send_headers.pop(range_header)
                     url = f'{url}&range={range_param}&alr=no'
                 response, cleanup_func = util.fetch_url_response(url, send_headers,
