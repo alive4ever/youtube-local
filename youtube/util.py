@@ -294,12 +294,13 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
         # Save response.cookies
         if not os.path.isdir(settings.data_dir):
             os.makedirs(settings.data_dir)
-        if len(response.cookies) > 0:
+        if len(response.cookies) > 0 and os.path.isfile(cookie_file):
             print('Saving updated cookies')
             save_cookies(cookie_file=cookie_file)
         else:
-            print('Creating cookie file')
-            save_cookies(cookie_file=cookie_file)
+            if not os.path.isfile(cookie_file):
+                print('Creating cookie file')
+                save_cookies(cookie_file=cookie_file)
         response.getheader = (lambda name: response.headers.get(name))
         cleanup_func = (lambda r: response.close())
         return response, cleanup_func
