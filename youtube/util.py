@@ -281,6 +281,9 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
                 session_cookies = None
             return session_cookies
 
+        # This param is added to video url when googlevideo_use_post = True
+        range_re = r'&range=(\d+-\d+)&alr'
+        range_found = re.search(range_re, url)
         if data:
             if isinstance(data, bytes):
                 request = httpx_client.build_request(method, url, content=data, headers=headers, cookies=_load_cookies(cookie_file))
@@ -289,6 +292,12 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
         else:
             request = httpx_client.build_request(method, url, headers=headers, cookies=_load_cookies(cookie_file))
         response = httpx_client.send(request)
+        if range_found and response.status_code == 200:
+            # Convert gvs post response back to http range response
+            range_bytes = range_found.group(1)
+            response.headers.update({'Content-Range': f'bytes {range_bytes}/*'})
+            response.status_code = 206
+            response.extensions['reason_phrase'] = 'Partial Content'.encode()
         response.status = response.status_code
         response.reason = response.reason_phrase
         # Save response.cookies
