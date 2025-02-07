@@ -381,7 +381,7 @@ def fetch_player_response(client, video_id):
 def fetch_watch_page_info(video_id, playlist_id, index):
     # bpctr=9999999999 will bypass are-you-sure dialogs for controversial
     # videos
-    url = 'https://m.youtube.com/embed/' + video_id + '?bpctr=9999999999'
+    url = f'https://m.youtube.com/watch?v={video_id}'
     if playlist_id:
         url += '&list=' + playlist_id
     if index:
