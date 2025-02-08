@@ -122,6 +122,17 @@ def proxy_site(env, start_response, video=False):
         else:
             response, cleanup_func = util.fetch_url_response(url, send_headers)
 
+        if env.get('HTTP_RANGE'):
+            range_requested = env['HTTP_RANGE'].split('=')[1]
+            if response.status == 200:
+                response.status = 206
+                response.headers.update({ 'Content-Range': f'bytes {range_requested}/*' })
+                if settings.use_httpx:
+                    response.status_code = 206
+                    response.extensions['reason_phrase'] = 'Partial Content'.encode()
+                    response.reason = response.reason_phrase
+                else:
+                    response.reason = 'Partial Content'
         remove_hop_by_hop_headers(response)
         response_headers = response.headers
         #if isinstance(response_headers, urllib3._collections.HTTPHeaderDict):
