@@ -28,7 +28,7 @@ import json
 def youtu_be(env, start_response):
     id = env['PATH_INFO'][1:]
     env['PATH_INFO'] = '/watch'
-    if not env['QUERY_STRING']:
+    if not env.get('QUERY_STRING'):
         env['QUERY_STRING'] = 'v=' + id
     else:
         env['QUERY_STRING'] += '&v=' + id
@@ -87,7 +87,7 @@ def proxy_site(env, start_response, video=False):
     # remove /name portion
     if video and '/videoplayback/name/' in url:
         url = url[0:url.rfind('/name/')]
-    if env['QUERY_STRING']:
+    if env.get('QUERY_STRING'):
         url += '?' + env['QUERY_STRING']
 
     try_num = 1
@@ -283,8 +283,9 @@ def error_code(code, start_response):
 def site_dispatch(env, start_response):
     client_address = env['REMOTE_ADDR']
     try:
+        if env.get('QUERY_STRING'):
         # correct malformed query string with ? separators instead of &
-        env['QUERY_STRING'] = env['QUERY_STRING'].replace('?', '&')
+            env['QUERY_STRING'] = env['QUERY_STRING'].replace('?', '&')
 
         # Some servers such as uWSGI rewrite double slashes // to / by default,
         # breaking the https:// schema. Some servers provide
