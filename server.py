@@ -113,12 +113,21 @@ def proxy_site(env, start_response, video=False):
                         range_header = item
                 if range_header:
                     range_param = send_headers.get(range_header).split('=')[1]
-                    send_headers.pop(range_header)
-                    url = f'{url}&range={range_param}&alr=no'
-                response, cleanup_func = util.fetch_url_response(url, send_headers,
+                    start, end = range_param.split('-')
+                    # Only use post if range end is present
+                    if end:
+                        send_headers.pop(range_header)
+                        url = f'{url}&range={range_param}&alr=no'
+                        response, cleanup_func = util.fetch_url_response(url, send_headers,
                                                                  use_tor=use_tor,
                                                                  max_redirects=10,
                                                                  data=bytes(payload))
+                    else:
+                        # forward the request to gvs as is
+                        response, cleanup_func = util.fetch_url_response(url, send_headers,
+                                                                 use_tor=use_tor,
+                                                                 max_redirects=10)
+
         else:
             response, cleanup_func = util.fetch_url_response(url, send_headers)
 
