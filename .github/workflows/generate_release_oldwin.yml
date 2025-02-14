@@ -1,9 +1,9 @@
-name: Generate release for youtube-local
+name: Generate release for youtube-local (oldwin)
 run-name: ${{ github.actor }} is creating release for youtube-local
 on:
   push:
     tags:
-      - "*"
+      - "*-pre"
 
 jobs:
   generate-release:
@@ -31,7 +31,9 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          python3 ./generate_release.py 3.11.9
+          echo "WINEPREFIX=~/.wine32" >> "$GITHUB_ENV"
+          echo "WINEARCH=win32" >> "$GITHUB_ENV"
+          python3 ./generate_release.py oldwin
           mkdir -p /tmp/output
           cp -v youtube-local*zip /tmp/output/
       - name: Uploading build artifacts
@@ -43,5 +45,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
+          prerelease: true
           files: |
             /tmp/output/*
