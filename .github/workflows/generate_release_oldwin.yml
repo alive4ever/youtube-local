@@ -21,9 +21,8 @@ jobs:
       - name: Generating release
         id: generating-release
         run: |
-          choco install -y vcexpress2010
           cd ${{ github.workspace }}
-          python ./generate_release.py oldwin
+          python ./generate_release.py 3.8.10 32
           mkdir -p output
           xcopy youtube-local*zip .\output\
       - name: Uploading build artifacts
