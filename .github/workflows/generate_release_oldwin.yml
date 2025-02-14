@@ -21,9 +21,9 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          python3.8 ./generate_release.py 3.8.10 32
+          python ./generate_release.py 3.8.10 32
           move youtube-local youtube-local-3.8.10
-          python3.8 ./generate_release.py oldwin
+          python ./generate_release.py oldwin
           mkdir -p output
           xcopy youtube-local*zip .\output\
       - name: Uploading build artifacts
