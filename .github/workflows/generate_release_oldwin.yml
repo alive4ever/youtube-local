@@ -33,7 +33,7 @@ jobs:
           cd ${{ github.workspace }}
           echo "WINEPREFIX=~/.wine32" >> "$GITHUB_ENV"
           echo "WINEARCH=win32" >> "$GITHUB_ENV"
-          python3 ./generate_release.py oldwin
+          python3 ./generate_release.py 3.8.10 32
           mkdir -p /tmp/output
           cp -v youtube-local*zip /tmp/output/
       - name: Uploading build artifacts
