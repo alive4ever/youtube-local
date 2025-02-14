@@ -101,7 +101,7 @@ if len(os.listdir('./youtube-local')) == 0:
 # ----------- Generate embedded python distribution -----------
 os.environ['PYTHONDONTWRITEBYTECODE'] = '1'     # *.pyc files double the size of the distribution
 get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
-python_version_major, python_version_minor, python_version_micro = latest_version.split('.')
+python_version_major, python_version_minor, python_version_micro = map(int, latest_version.split('.'))
 if python_version_minor < 8:
     get_pip_version = '.'.join([ python_version_major, python_version_minor ])
     get_pip_url = f'https://bootstrap.pypa.io/{get_pip_version}/get-pip.py'
