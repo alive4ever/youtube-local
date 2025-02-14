@@ -7,44 +7,34 @@ on:
 
 jobs:
   generate-release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - name: Getting ubuntu version
-        id: get-ubuntu-version
-        run: |
-          echo "DIST_CODENAME=$(lsb_release -c | awk '{print $2}')" >> "$GITHUB_ENV" 
-      - name: Preparing packages
-        id: packages-preparation
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo mkdir -pm755 /etc/apt/keyrings
-          wget -O - https://dl.winehq.org/wine-builds/winehq.key | sudo dd of=/etc/apt/keyrings/winehq-archive.key 
-          wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/"$DIST_CODENAME"/winehq-"$DIST_CODENAME".sources | sudo dd of=/etc/apt/sources.list.d/winehq-"$DIST_CODENAME".sources
-          sudo apt update
-          sudo apt upgrade -y
-          sudo apt install -y --install-recommends winehq-devel p7zip p7zip-full
-          echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
         uses: actions/checkout@v4
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
       - name: Generating release
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          echo "WINEPREFIX=~/.wine32" >> "$GITHUB_ENV"
-          echo "WINEARCH=win32" >> "$GITHUB_ENV"
-          python3 ./generate_release.py 3.8.10 32
-          mkdir -p /tmp/output
-          cp -v youtube-local*zip /tmp/output/
+          python3.8 ./generate_release.py 3.8.10 32
+          move youtube-local youtube-local-3.8.10
+          python3.8 ./generate_release.py oldwin
+          mkdir -p output
+          xcopy youtube-local*zip .\output\
       - name: Uploading build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: zip-package
-          path: /tmp/output/
+          path: ${{ github.workspace }}/output/
       - name: Creating youtube-local release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           prerelease: true
           files: |
-            /tmp/output/*
+            ${{ github.workspace }}/output/*
