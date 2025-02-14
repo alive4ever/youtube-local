@@ -22,7 +22,7 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          python ./generate_release.py 3.8.10 32
+          python ./generate_release.py 3.8.9 32
           mkdir -p output
           xcopy youtube-local*zip .\output\
       - name: Uploading build artifacts
