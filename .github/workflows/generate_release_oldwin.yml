@@ -17,12 +17,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.8'
+          architecture: 'x86'
       - name: Generating release
         id: generating-release
         run: |
+          choco install -y vcexpress2010
           cd ${{ github.workspace }}
-          python ./generate_release.py 3.8.10 32
-          move youtube-local youtube-local-3.8.10
           python ./generate_release.py oldwin
           mkdir -p output
           xcopy youtube-local*zip .\output\
