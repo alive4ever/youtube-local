@@ -22,10 +22,10 @@ jobs:
         id: local-runtime-test
         run: |
           cd "${{ github.workspace }}"
-          python -m venv --upgrade-deps .venv
+          python -m venv .venv
           Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
-          ./.venv/Scripts/Activate.ps1
-          ./.venv/Scripts/pip.exe install -r requirements.txt
+          .\.venv\Scripts\Activate.ps1
+          .\.venv\Scripts\pip.exe install -r requirements.txt
           python -c "import server; from youtube import util; url = 'https://cloudflare.com/cdn-cgi/trace'; resp = util.fetch_url(url, report_text='Getting CF trace report'); print(resp.decode())" && deactivate
       - name: Generating release
         id: generating-release
