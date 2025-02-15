@@ -22,18 +22,19 @@ jobs:
         id: generating-release
         shell: bash
         run: |
-          cd ${{ github.workspace }}
+          cd "${{ github.workspace }}"
           python ./generate_release.py oldwin
       - name: Testing runtime
         id: testing-runtime
         shell: bash
         run: |
-          cd ${{ github.workspace }}/youtube-local
+          cd "${{ github.workspace }}"/youtube-local
           ./python/python.exe -c "import server; from youtube import util; url = 'https://cloudflare.com/cdn-cgi/trace'; resp = util.fetch_url(url, report_text='Getting CF trace report'); print(resp.decode())"
       - name: Preparing output directory
         id: prepare-out-dir
         shell: bash
         run: |
+          cd "${{ github.workspace }}"
           mkdir -p output
           xcopy youtube-local*zip ./output/
       - name: Uploading build artifacts
