@@ -46,7 +46,7 @@ jobs:
         run: |
           cd "${{ github.workspace }}"
           mkdir -p output
-          xcopy youtube-local*zip ./output/
+          cp -v youtube-local*zip ./output/
       - name: Uploading build artifacts
         uses: actions/upload-artifact@v4
         with:
