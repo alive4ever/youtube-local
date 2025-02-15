@@ -207,10 +207,7 @@ log('Inserting Microsoft C Runtime')
 check_subp(subprocess.run([r'7z', '-y', 'e', '-opython', visual_c_name, visual_c_path_to_dlls]))
 
 log('Installing dependencies')
-if python_version_minor == 8:
-    wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-use-pep517', '--no-compile', '-r', './requirements.txt'])
-else:
-    wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
+wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
 shutil.rmtree(r'./python/Lib/site-packages/gevent/tests')
