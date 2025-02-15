@@ -16,14 +16,14 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.7'
+          python-version: '3.8'
           architecture: 'x86'
       - name: Generating release
         id: generating-release
         shell: bash
         run: |
           cd "${{ github.workspace }}"
-          python ./generate_release.py oldwin
+          python ./generate_release.py 3.8.10 32
       - name: Testing runtime
         id: testing-runtime
         shell: bash
