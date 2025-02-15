@@ -210,7 +210,6 @@ log('Installing dependencies')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'uninstall', '--yes', 'cffi', 'pycparser'])
 shutil.rmtree(r'./python/Lib/site-packages/gevent/tests')
 shutil.rmtree(r'./python/Lib/site-packages/gevent/testing')
 remove_files_with_extensions(r'./python/Lib/site-packages/gevent', ['.html']) # bloated html documentation
