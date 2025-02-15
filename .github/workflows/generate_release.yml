@@ -1,4 +1,4 @@
-name: Generate release for youtube-local (oldwin)
+name: Generate release for youtube-local
 run-name: ${{ github.actor }} is creating release for youtube-local
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           cd "${{ github.workspace }}"
-          python ./generate_release.py 3.13
+          python ./generate_release.py 3.13.2
       - name: Testing runtime
         id: testing-runtime
         shell: bash
@@ -46,7 +46,7 @@ jobs:
         run: |
           cd "${{ github.workspace }}"
           mkdir -p output
-          xcopy youtube-local*zip ./output/
+          cp -v youtube-local*zip ./output/
       - name: Uploading build artifacts
         uses: actions/upload-artifact@v4
         with:
