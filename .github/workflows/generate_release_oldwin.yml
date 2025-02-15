@@ -16,15 +16,26 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.7'
           architecture: 'x86'
       - name: Generating release
         id: generating-release
+        shell: bash
         run: |
           cd ${{ github.workspace }}
-          python ./generate_release.py 3.8.9 32
+          python ./generate_release.py oldwin
+      - name: Testing runtime
+        id: testing-runtime
+        shell: bash
+        run: |
+          cd ${{ github.workspace }}/youtube-local
+          ./python/python.exe -c "import server; from youtube import util; url = 'https://cloudflare.com/cdn-cgi/trace'; resp = util.fetch_url(url, report_text='Getting CF trace report'); print(resp.decode())"
+      - name: Preparing output directory
+        id: prepare-out-dir
+        shell: bash
+        run: |
           mkdir -p output
-          xcopy youtube-local*zip .\output\
+          xcopy youtube-local*zip ./output/
       - name: Uploading build artifacts
         uses: actions/upload-artifact@v4
         with:
