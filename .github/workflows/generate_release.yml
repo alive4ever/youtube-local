@@ -1,0 +1,61 @@
+name: Generate release for youtube-local (oldwin)
+run-name: ${{ github.actor }} is creating release for youtube-local
+on:
+  push:
+    tags:
+      - "*-pre"
+
+jobs:
+  generate-release:
+    runs-on: windows-latest
+    steps:
+      - name: Preparing repository
+        id: repository-preparation
+        uses: actions/checkout@v4
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - name: Testing runtime with local python
+        id: local-runtime-test
+        run: |
+          cd "${{ github.workspace }}"
+          python -m venv .venv
+          Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+          .\.venv\Scripts\Activate.ps1
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -c "import server; from youtube import util; url = 'https://cloudflare.com/cdn-cgi/trace'; resp = util.fetch_url(url, report_text='Getting CF trace report'); print(resp.decode())" && deactivate
+      - name: Generating release
+        id: generating-release
+        shell: bash
+        run: |
+          cd "${{ github.workspace }}"
+          python ./generate_release.py 3.13
+      - name: Testing runtime
+        id: testing-runtime
+        shell: bash
+        run: |
+          cd "${{ github.workspace }}"/youtube-local
+          ./python/python.exe -c "import server; from youtube import util; url = 'https://cloudflare.com/cdn-cgi/trace'; resp = util.fetch_url(url, report_text='Getting CF trace report'); print(resp.decode())"
+      - name: Preparing output directory
+        id: prepare-out-dir
+        shell: bash
+        run: |
+          cd "${{ github.workspace }}"
+          mkdir -p output
+          xcopy youtube-local*zip ./output/
+      - name: Uploading build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip-package
+          path: ${{ github.workspace }}/output/
+      - name: Creating youtube-local release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          files: |
+            ${{ github.workspace }}/output/*
