@@ -101,6 +101,10 @@ if len(os.listdir('./youtube-local')) == 0:
 # ----------- Generate embedded python distribution -----------
 os.environ['PYTHONDONTWRITEBYTECODE'] = '1'     # *.pyc files double the size of the distribution
 get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
+python_version_major, python_version_minor, python_version_micro = map(int, latest_version.split('.'))
+if python_version_minor < 8:
+    get_pip_version = '.'.join(map(str,[ python_version_major, python_version_minor ]))
+    get_pip_url = f'https://bootstrap.pypa.io/pip/{get_pip_version}/get-pip.py'
 latest_dist_url = 'https://www.python.org/ftp/python/' + latest_version + '/python-' + latest_version
 if bitness == '32':
     latest_dist_url += '-embed-win32.zip'
@@ -206,7 +210,6 @@ log('Installing dependencies')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'uninstall', '--yes', 'cffi', 'pycparser'])
 shutil.rmtree(r'./python/Lib/site-packages/gevent/tests')
 shutil.rmtree(r'./python/Lib/site-packages/gevent/testing')
 remove_files_with_extensions(r'./python/Lib/site-packages/gevent', ['.html']) # bloated html documentation
