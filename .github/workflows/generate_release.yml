@@ -1,0 +1,57 @@
+name: Generate release for youtube-local
+run-name: ${{ github.actor }} is creating release for youtube-local
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  generate-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Getting ubuntu version
+        id: get-ubuntu-version
+        run: |
+          echo "DIST_CODENAME=$(lsb_release -c | awk '{print $2}')" >> "$GITHUB_ENV" 
+      - name: Preparing packages
+        id: packages-preparation
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo mkdir -pm755 /etc/apt/keyrings
+          wget -O - https://dl.winehq.org/wine-builds/winehq.key | sudo dd of=/etc/apt/keyrings/winehq-archive.key 
+          wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/"$DIST_CODENAME"/winehq-"$DIST_CODENAME".sources | sudo dd of=/etc/apt/sources.list.d/winehq-"$DIST_CODENAME".sources
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install -y --install-recommends winehq-devel p7zip p7zip-full
+          echo "Wine and 7zip is installed"
+      - name: Preparing repository
+        id: repository-preparation
+        uses: actions/checkout@v4
+      - name: Setting up latest python
+        id: python-setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Generating release
+        id: generating-release
+        run: |
+          cd ${{ github.workspace }}
+          python ./generate_release.py 3.13.2
+          mkdir -p /tmp/output
+          cp -v youtube-local*zip /tmp/output/
+      - name: Runtime test
+        id: runtime-test
+        run: |
+          cd ${{ github.workspace }}/youtube-local
+          wine ./python/python.exe -c "import server; from youtube import util; url = 'https://cloudflare.com/cdn-cgi/trace'; resp = util.fetch_url(url, report_text='Fetching CF trace report') ; print(resp.decode())"
+      - name: Uploading build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip-package
+          path: /tmp/output/
+      - name: Creating youtube-local release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            /tmp/output/*
