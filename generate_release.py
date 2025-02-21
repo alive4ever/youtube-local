@@ -208,6 +208,8 @@ check_subp(subprocess.run([r'7z', '-y', 'e', '-opython', visual_c_name, visual_c
 
 log('Installing dependencies')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', 'wheel', 'setuptools'])
+if python_version_minor == 8:
+    wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', 'zope.interface==6.3'])
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
