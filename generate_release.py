@@ -242,7 +242,7 @@ log('Copying python distribution into release folder')
 shutil.copytree(r'./python', r'./youtube-local/python')
 
 # ----------- Create release zip -----------
-output_filename = 'youtube-local-' + release_tag + '-' + suffix + '.zip'
+output_filename = 'youtube-local-' + release_tag + '-' + suffix + bitness + '.zip'
 if os.path.exists('./' + output_filename):
     log('Removing previous zipped release')
     os.remove('./' + output_filename)
