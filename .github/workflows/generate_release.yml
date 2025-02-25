@@ -22,7 +22,7 @@ jobs:
           wget -O - https://dl.winehq.org/wine-builds/ubuntu/dists/"$DIST_CODENAME"/winehq-"$DIST_CODENAME".sources | sudo dd of=/etc/apt/sources.list.d/winehq-"$DIST_CODENAME".sources
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y --install-recommends winehq-devel p7zip p7zip-full
+          sudo apt install -y --install-recommends winehq-stable p7zip p7zip-full
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
