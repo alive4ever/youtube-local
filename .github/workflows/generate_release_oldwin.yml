@@ -32,6 +32,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Setting up wine prefix
+        id: setting-up-wine-prefix
+        run: |
+          echo "WINEPREFIX=$HOME/.wine64" > "$GITHUB_ENV"
       - name: Generating release
         id: generating-release
         run: |
