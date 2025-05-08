@@ -19,7 +19,7 @@ import stem
 import stem.control
 import traceback
 if settings.use_httpx:
-    import pickle
+    import http.cookiejar
     import httpx
     import copy
 
@@ -60,10 +60,12 @@ URL_ORIGIN = "/https://www.youtube.com"
 
 connection_pool = urllib3.PoolManager(cert_reqs = 'CERT_REQUIRED')
 if settings.use_httpx:
+    cookiejar_file = os.path.join(settings.data_dir, 'cookies.txt')
+    cookiejar = http.cookiejar.LWPCookieJar(filename=cookiejar_file)
     if settings.route_tor == 0:
-        httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10)
+        httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10, cookies=cookiejar)
     else:
-        httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10, proxy=f'socks5://localhost:{settings.tor_port}')
+        httpx_client = httpx.Client(http2=True, follow_redirects=True, max_redirects=10, cookies=cookiejar, proxy=f'socks5://localhost:{settings.tor_port}')
 
 
 class TorManager:
@@ -221,21 +223,23 @@ def decode_content(content, encoding_header):
             content = gzip.decompress(content)
     return content
 
-def save_cookies(cookie_file):
-	with open(cookie_file, "wb") as f:
-		pickle.dump(httpx_client.cookies.jar._cookies, f)
+def save_cookies():
+    if not settings.use_httpx:
+        pass
+    else:
+        try:
+            cookiejar.save(filename=cookiejar_file)
+        except Exception:
+            pass
 
-def load_cookies(cookie_file):
-	if not os.path.isfile(cookie_file):
-		return None
-	cookies = httpx_client.cookies
-	with open(cookie_file, "rb") as f:
-		jar_cookies = pickle.load(f)
-	for domain , pc in jar_cookies.items():
-		for path, c in pc.items():
-			for k, v in c.items():
-				cookies.set(k, v.value, domain=domain, path=path)
-	return cookies
+def load_cookies():
+    if not settings.use_httpx:
+        pass
+    else:
+        try:
+            cookiejar.load(filename=cookiejar_file)
+        except Exception:
+            pass
 
 def fetch_url_response(url, headers=(), timeout=15, data=None,
                        cookiejar_send=None, cookiejar_receive=None,
@@ -273,34 +277,22 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
             if not isinstance(value, str):
                 headers[key] = str(value)
         # Load cookies
-        cookie_file = os.path.join(settings.data_dir, 'cookies.pk')
-        def _load_cookies(cookie_file):
-            if os.path.isfile(cookie_file):
-                session_cookies = load_cookies(cookie_file)
-            else:
-                session_cookies = None
-            return session_cookies
+        load_cookies()
 
         if data:
             if isinstance(data, bytes):
-                request = httpx_client.build_request(method, url, content=data, headers=headers, cookies=_load_cookies(cookie_file))
+                request = httpx_client.build_request(method, url, content=data, headers=headers)
             elif isinstance(data, str):
-                request = httpx_client.build_request(method, url, data=data, headers=headers, cookies=_load_cookies(cookie_file))
+                request = httpx_client.build_request(method, url, data=data, headers=headers)
         else:
-            request = httpx_client.build_request(method, url, headers=headers, cookies=_load_cookies(cookie_file))
+            request = httpx_client.build_request(method, url, headers=headers)
         response = httpx_client.send(request)
         response.status = response.status_code
         response.reason = response.reason_phrase
         # Save response.cookies
-        if not os.path.isdir(settings.data_dir):
-            os.makedirs(settings.data_dir)
-        if len(response.cookies) > 0 and os.path.isfile(cookie_file):
+        if response.cookies:
             print('Saving updated cookies')
-            save_cookies(cookie_file=cookie_file)
-        else:
-            if not os.path.isfile(cookie_file):
-                print('Creating cookie file')
-                save_cookies(cookie_file=cookie_file)
+            cookiejar.save()
         response.getheader = (lambda name: response.headers.get(name))
         cleanup_func = (lambda r: response.close())
         return response, cleanup_func
