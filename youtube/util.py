@@ -228,6 +228,8 @@ def save_cookies():
     if not settings.use_httpx:
         pass
     else:
+        if not os.path.isdir(settings.data_dir):
+            os.makedirs(settings.data_dir)
         try:
             cookiejar.save(filename=cookiejar_file)
         except Exception:
@@ -237,6 +239,8 @@ def load_cookies():
     if not settings.use_httpx:
         pass
     else:
+        if not os.path.isdir(settings.data_dir):
+            os.makedirs(settings.data_dir)
         try:
             cookiejar.load(filename=cookiejar_file)
         except Exception:
