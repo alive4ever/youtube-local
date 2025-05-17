@@ -242,6 +242,7 @@ def load_cookies():
             os.makedirs(settings.data_dir)
         try:
             cookiejar.load(filename=cookiejar_file)
+            cookiejar.clear_expired_cookies()
         except Exception:
             pass
 
@@ -296,7 +297,7 @@ def fetch_url_response(url, headers=(), timeout=15, data=None,
         # Save response.cookies
         if response.cookies:
             print('Saving updated cookies')
-            cookiejar.save()
+            save_cookies()
         response.getheader = (lambda name: response.headers.get(name))
         cleanup_func = (lambda r: response.close())
         return response, cleanup_func
