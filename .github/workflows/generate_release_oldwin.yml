@@ -60,4 +60,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
             TAG="$(git describe --tag)"
-            gh release create "$TAG" /tmp/output/* --verify-tag --generate-notes
+            gh release create "$TAG" /tmp/output/* --verify-tag --generate-notes || gh release upload "$TAG" /tmp/output/*
