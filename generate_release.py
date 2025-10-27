@@ -210,7 +210,7 @@ log('Installing dependencies')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', 'wheel', 'setuptools'])
 if python_version_minor == 8:
     wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', 'zope.interface==6.3'])
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '--no-use-pep517', '-r', './requirements.txt'])
+wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
 shutil.rmtree(r'./python/Lib/site-packages/gevent/tests')
