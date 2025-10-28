@@ -31,7 +31,7 @@ jobs:
         id: python-setup
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Setting up wine prefix
         id: setting-up-wine-prefix
         run: |
@@ -40,7 +40,7 @@ jobs:
         id: generating-release
         run: |
           cd ${{ github.workspace }}
-          python ./generate_release.py 3.12.10
+          python ./generate_release.py 3.13.9
           mkdir -p /tmp/output
           cp -v youtube-local*zip /tmp/output/
       - name: Runtime test
