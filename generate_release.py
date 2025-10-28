@@ -139,7 +139,9 @@ log('Extracting python distribution')
 check(os.system(r'7z -y x -opython ' + python_dist_name))
 
 log('Executing get-pip.py')
-wine_run(['./python/python.exe', '-I', 'get-pip.py'])
+# workaround to avoid recent breaking changes
+pip_version = 'pip <= 25.2'
+wine_run(['./python/python.exe', '-I', 'get-pip.py', pip_version])
 
 '''
 # Explanation of .pth, ._pth, and isolated mode
