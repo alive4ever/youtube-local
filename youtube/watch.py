@@ -715,9 +715,12 @@ def get_watch_page(video_id=None):
         ext = fmt.get('ext')
         if ext:
             filename += '.' + ext
-        fmt['url'] = fmt['url'].replace(
-            '/videoplayback',
-            '/videoplayback/name/' + filename)
+        if fmt.get('url'):
+            fmt['url'] = fmt['url'].replace(
+                '/videoplayback',
+                '/videoplayback/name/' + filename)
+        else:
+            print(f"Warning: format {fmt['itag']} has been skipped because it has no url")
 
 
     download_formats = []
