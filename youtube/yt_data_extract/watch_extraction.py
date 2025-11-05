@@ -984,13 +984,25 @@ def append_po_token(info):
     if not settings.use_po_token:
         return False
     else:
-        po_token_cache = os.path.join(settings.data_dir, 'po_token_cache.txt')
+        if info.get('id'):
+            video_id = info['id']
+            print(f'Video id is {video_id}')
+        else:
+            return False
+        po_token_cache = os.path.join(settings.data_dir, 'player_pot_cache.txt')
+
         if os.path.exists(po_token_cache):
             with open(po_token_cache, 'r') as file:
                 po_token_dict = json.loads(file.read())
-            info['poToken'] = po_token_dict.get('poToken')
+            data = po_token_dict.get(video_id)
+            if data:
+                info['poToken'] = data.get('poToken')
+            else:
+                print(f'No player po_token data found for {video_id}')
+                return False
             po_token = info['poToken']
             if po_token:
+                print(f'Appending po_token for {video_id}')
                 for fmt in info['formats']:
                     fmt['url'] += f'&pot={po_token}'
                 return False
