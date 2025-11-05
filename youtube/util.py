@@ -10,6 +10,7 @@ import urllib.parse
 import re
 import time
 import os
+from youtube.yt_data_extract.watch_extraction import js_runtime
 import json
 import gevent
 import gevent.queue
@@ -18,6 +19,7 @@ import collections
 import stem
 import stem.control
 import traceback
+import subprocess
 
 # The trouble with the requests library: It ships its own certificate bundle via certifi
 #  instead of using the system certificate store, meaning self-signed certificates
@@ -917,6 +919,119 @@ def get_player_version(video_id, headers, ytcfg: {} or None):
     if player_version is not None:
         return player_version
 
+def generate_po_token(js_runtime, identifier=''):
+    if not js_runtime:
+        print('No js runtime found. Unable to generate po_token')
+        return False
+    start = time.perf_counter()
+    print('Generating po_token_cache.txt')
+    pot_generator_dir = os.path.join(
+            settings.data_dir, 'pot_generator'
+            )
+    if not os.path.isdir(pot_generator_dir):
+        os.makedirs(pot_generator_dir)
+    pot_generator_script = 'generate-po-token.ts'
+    if identifier:
+        pot_generator_script = 'generate-po-token-identifier.ts'
+    pot_generator_fullpath = os.path.join(pot_generator_dir, pot_generator_script)
+    if not os.path.isfile(pot_generator_fullpath):
+        script_url = f'https://github.com/alive4ever/bgutils-pot-generator/blob/main/{pot_generator_script}'.replace('blob', 'raw')
+        pkg_url = 'https://github.com/alive4ever/bgutils-pot-generator/blob/main/package.json'.replace('blob', 'raw')
+        with open(pot_generator_fullpath, 'wb') as file:
+            resp = fetch_url(script_url)
+            if len(resp) > 0:
+                file.write(resp)
+        with open(os.path.join(pot_generator_dir, os.path.basename(pkg_url)), 'wb') as file:
+            resp = fetch_url(pkg_url)
+            if len(resp) > 0:
+                file.write(resp)
+    install_command = {
+            'bun': ['bun', 'install'],
+            'deno': ['deno', 'install'],
+            'node': ['npm', 'install'],
+            }
+    generate_command = {
+            'bun': ['bun'],
+            'deno': ['deno', '--allow-net', '--allow-env', '--allow-read=node_modules'],
+            'node': ['node'],
+            }
+    player_token_cache = os.path.join(
+            settings.data_dir,
+            'player_pot_cache.txt'
+            )
+    curdir = os.getcwd()
+    if not os.path.isdir(os.path.join(pot_generator_dir, 'node_modules')):
+        try:
+            os.chdir(pot_generator_dir)
+            pkg_result = subprocess.run(install_command[js_runtime])
+            os.chdir(curdir)
+            pkg_result.check_returncode()
+        except Exception as err:
+            os.chdir(curdir)
+            print(f'Got an error installing packages:\n{err}')
+            return False
+    process_result = None
+    if identifier:
+        player_token_cache_dict = {}
+        try:
+            with open(player_token_cache, 'r') as file:
+                print('Loading player po_token from cache')
+                player_token_cache_dict = json.load(file)
+        except Exception as err:
+            print(f'Warning: unable to open player_token_cache\n{err}')
+        pot_data = player_token_cache_dict.get(identifier)
+        if pot_data:
+            print(f"Got player_pot from cache: { len(pot_data['poToken']) }")
+            return True
+        else:
+            os.chdir(pot_generator_dir)
+            process_result = subprocess.run([*generate_command[js_runtime], pot_generator_script, identifier], capture_output=True)
+            os.chdir(curdir)
+    else:
+        os.chdir(pot_generator_dir)
+        process_result = subprocess.run([*generate_command[js_runtime], pot_generator_script], capture_output=True)
+        os.chdir(curdir)
+    end = time.perf_counter()
+    try:
+        process_result.check_returncode()
+        print(f'Generated po_token in {end-start:.2f}')
+    except Exception as err:
+        print(f'Got an exception during po_token_generation:\n{err}')
+    finally:
+        os.chdir(curdir)
+    if identifier:
+        result_json = json.loads(process_result.stdout.decode())
+        try:
+            pot_player_data = {}
+            if os.path.exists(player_token_cache):
+                with open(player_token_cache, 'r') as file:
+                    content = file.read()
+                    if len(content) == 0:
+                        pass
+                    else:
+                        pot_player_data  = json.loads(content)
+                    pot_player_data[identifier] = result_json
+                with open(player_token_cache, 'w') as save_file:
+                    json.dump(pot_player_data, save_file)
+                    print(f"Appended player pot for identifier {identifier} to cache")
+                return True
+            else:
+                pot_player_data[identifier] = result_json
+                with open(player_token_cache, 'w') as save_file:
+                    json.dump(pot_player_data, save_file)
+                    print(f"Appended player pot for identifier {identifier} to a newly created cache")
+                return True
+        except Exception as err:
+            print(f'Got an exception during loading/saving player bound po_token:\n{err}')
+            return False
+    else:
+        try:
+            with open(os.path.join(settings.data_dir, 'po_token_cache.txt'), 'wb') as file:
+                file.write(process_result.stdout)
+            return True
+        except Exception as err:
+            print(f'Unable to save po_token_cache.txt file')
+
 def get_visitor_data():
     visitor_data = None
     if not settings.use_po_token:
@@ -931,6 +1046,15 @@ def get_visitor_data():
                 po_token_dict = json.load(file)
                 visitor_data = po_token_dict.get('visitorData')
             return visitor_data
+        else:
+            action_result = generate_po_token(js_runtime)
+            if action_result:
+                with open(po_token_cache, 'r') as file:
+                    print('Extracting po_token from po_token_cache')
+                    po_token_dict = json.load(file)
+                    visitor_data = po_token_dict.get('visitorData')
+                    return visitor_data
+
     if os.path.isfile(visitor_data_cache):
         with open(visitor_data_cache, 'r') as file:
             visitor_data = file.read()
@@ -958,19 +1082,50 @@ def get_visitor_data():
         print('Unable to get visitor_data value')
     return visitor_data
 
-def get_po_token():
+def get_po_token(identifier:str = ''):
     if not settings.use_po_token:
         return None
-    po_token_cache = os.path.join(settings.data_dir, 'po_token_cache.txt')
-    if os.path.isfile(po_token_cache):
-        with open(po_token_cache, 'r') as file:
-            print('Extracting po_token from po_token_cache')
-            po_token_dict = json.load(file)
-            po_token = po_token_dict.get('poToken')
-            return po_token
+    player_token_cache = os.path.join(
+            settings.data_dir,
+            'player_pot_cache.txt'
+            )
+    if identifier:
+        player_po_token = ''
+        action_result = generate_po_token(js_runtime, identifier=identifier)
+        if action_result:
+            if os.path.isfile(player_token_cache):
+                with open(player_token_cache, 'r') as file:
+                    player_token_data = json.load(file)
+                    try:
+                        player_po_token = player_token_data[identifier]['poToken']
+                        print(f'Got po_token for {identifier} from cache: {len(player_po_token)}')
+                    except Exception as err:
+                        print(f'Error loading po_token for p{identifier}')
+            else:
+                print('Unable to get player bound po_token')
+        else:
+            print("Got an error during po_token_generation")
+        return player_po_token
     else:
-        print('po_token_cache.txt is not found.')
-        return None
+        po_token_cache = os.path.join(settings.data_dir, 'po_token_cache.txt')
+        if os.path.isfile(po_token_cache):
+            with open(po_token_cache, 'r') as file:
+                print('Extracting po_token from po_token_cache')
+                po_token_dict = json.load(file)
+                po_token = po_token_dict.get('poToken')
+                return po_token
+        else:
+            print('po_token_cache.txt is not found. Generating one')
+            action_result = generate_po_token(js_runtime)
+            if action_result:
+                with open(po_token_cache, 'r') as file:
+                    print('Extracting po_token from po_token_cache')
+                    po_token_dict = json.load(file)
+                    po_token = po_token_dict.get('poToken')
+                    return po_token
+            else:
+                print('Unable to get po_token')
+                return None
 
 def extract_signature_timestamp(base_js):
     sts_re = re.compile(r'(?:signatureTimestamp|sts)\s*:\s*(?P<sts>[0-9]{5})')
@@ -993,8 +1148,15 @@ def call_youtube_api(client, api, data):
     visitor_data = get_visitor_data()
     if visitor_data:
         visitor_data_header = ( 'X-Goog-Visitor-Id', visitor_data )
-    po_token = get_po_token()
-    po_token_data = { 'poToken': po_token }
+    if settings.use_po_token:
+        if data.get('videoId'):
+            print(f"Generating player bound po_token for {data['videoId']}")
+            po_token = get_po_token(identifier=data['videoId'])
+        else:
+            print(f"Using session bound po_token")
+            po_token = get_po_token()
+        po_token_data = { 'poToken': po_token }
+        print(f"Got po_token: {len(po_token_data['poToken'])}")
     if ytcfg:
         ytcfg_context = ytcfg.get('INNERTUBE_CONTEXT')
         print('Got client context from ytcfg')
@@ -1071,8 +1233,9 @@ def call_youtube_api(client, api, data):
                         }
                     }
 
-    if po_token_data and data.get('videoId'):
-        data['serviceIntegrityDimensions'] = po_token_data
+    if settings.use_po_token:
+        if po_token_data and data.get('videoId'):
+            data['serviceIntegrityDimensions'] = po_token_data
 
     url = 'https://' + host + '/youtubei/v1/' + api
     if key:
