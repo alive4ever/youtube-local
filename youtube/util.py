@@ -945,15 +945,24 @@ def generate_po_token(js_runtime, identifier=''):
             resp = fetch_url(pkg_url)
             if len(resp) > 0:
                 file.write(resp)
+    if 'node' in js_runtime:
+        version = subprocess.run(['node', '--version'], capture_output=True).stdout.decode()
+        version_re = re.compile(r'v(\d+?)\.(\d+)?\.(\d+)')
+        major_version = re.search(version_re, version).group(1)
+        if int(major_version) < 22:
+            print('Old nodejs version is detected: < 22')
+            js_runtime = 'oldnode'
     install_command = {
             'bun': ['bun', 'install'],
             'deno': ['deno', 'install'],
             'node': ['npm', 'install'],
+            'oldnode': ['npm', 'install'],
             }
     generate_command = {
             'bun': ['bun'],
             'deno': ['deno', '--allow-net', '--allow-env', '--allow-read=node_modules'],
             'node': ['node'],
+            'oldnode': ['npx', '--yes', 'tsx'],
             }
     player_token_cache = os.path.join(
             settings.data_dir,
