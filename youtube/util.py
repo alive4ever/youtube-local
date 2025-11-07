@@ -924,7 +924,10 @@ def generate_po_token(js_runtime, identifier=''):
         print('No js runtime found. Unable to generate po_token')
         return False
     start = time.perf_counter()
-    print('Generating po_token_cache.txt')
+    if identifier:
+        print(f'Generating po_token for {identifier}...')
+    else:
+        print('Generating session po_token...')
     pot_generator_dir = os.path.join(
             settings.data_dir, 'pot_generator'
             )
