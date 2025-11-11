@@ -938,14 +938,14 @@ def generate_po_token(js_runtime, identifier=''):
         pot_generator_script = 'generate-po-token-identifier.ts'
     pot_generator_fullpath = os.path.join(pot_generator_dir, pot_generator_script)
     if not os.path.isfile(pot_generator_fullpath):
-        script_url = f'https://github.com/alive4ever/bgutils-pot-generator/blob/main/{pot_generator_script}'.replace('blob', 'raw')
-        pkg_url = 'https://github.com/alive4ever/bgutils-pot-generator/blob/main/package.json'.replace('blob', 'raw')
+        script_url = f'https://raw.githubusercontent.com/alive4ever/bgutils-pot-generator/main/{pot_generator_script}'.replace('blob', 'raw')
+        pkg_url = 'https://raw.githubusercontent.com/alive4ever/bgutils-pot-generator/main/package.json'
         with open(pot_generator_fullpath, 'wb') as file:
-            resp = fetch_url(script_url)
+            resp = fetch_url(script_url, report_text=f'Fetching {os.path.basename(script_url)}')
             if len(resp) > 0:
                 file.write(resp)
         with open(os.path.join(pot_generator_dir, os.path.basename(pkg_url)), 'wb') as file:
-            resp = fetch_url(pkg_url)
+            resp = fetch_url(pkg_url, report_text=f'Fetching {os.path.basename(pkg_url)}')
             if len(resp) > 0:
                 file.write(resp)
     if 'node' in js_runtime:
