@@ -944,10 +944,12 @@ def generate_po_token(js_runtime, identifier=''):
             resp = fetch_url(script_url, report_text=f'Fetching {os.path.basename(script_url)}')
             if len(resp) > 0:
                 file.write(resp)
-        with open(os.path.join(pot_generator_dir, os.path.basename(pkg_url)), 'wb') as file:
-            resp = fetch_url(pkg_url, report_text=f'Fetching {os.path.basename(pkg_url)}')
-            if len(resp) > 0:
-                file.write(resp)
+        pkg_filename = os.path.join(pot_generator_dir, os.path.basename(pkg_url))
+        if not os.path.isfile(pkg_filename):
+            with open(pkg_filename, 'wb') as file:
+                resp = fetch_url(pkg_url, report_text=f'Fetching {os.path.basename(pkg_url)}')
+                if len(resp) > 0:
+                    file.write(resp)
     if 'node' in js_runtime:
         version = subprocess.run(['node', '--version'], capture_output=True).stdout.decode()
         version_re = re.compile(r'v(\d+?)\.(\d+)?\.(\d+)')
