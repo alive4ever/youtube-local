@@ -208,7 +208,7 @@ check_subp(subprocess.run([r'7z', '-y', 'e', '-opython', visual_c_name, visual_c
 
 log('Installing dependencies')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', 'uv'])
-wine_run(['uv', 'pip', 'install', '-r', 'requirements.txt'])
+wine_run(['./python/python.exe', '-I', '-m', 'uv', 'pip', 'install', '-r', 'requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
 shutil.rmtree(r'./python/Lib/site-packages/gevent/tests')
