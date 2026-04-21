@@ -214,6 +214,8 @@ class FetchError(Exception):
 
 
 def decode_content(content, encoding_header):
+    if settings.use_httpx:
+        return content
     encodings = encoding_header.replace(' ', '').split(',')
     for encoding in reversed(encodings):
         if encoding == 'identity':
