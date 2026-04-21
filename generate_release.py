@@ -207,7 +207,8 @@ log('Inserting Microsoft C Runtime')
 check_subp(subprocess.run([r'7z', '-y', 'e', '-opython', visual_c_name, visual_c_path_to_dlls]))
 
 log('Installing dependencies')
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '-r', './requirements.txt'])
+wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', 'uv'])
+wine_run(['uv', 'pip', 'install', '-r', 'requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
 shutil.rmtree(r'./python/Lib/site-packages/gevent/tests')
@@ -215,7 +216,7 @@ shutil.rmtree(r'./python/Lib/site-packages/gevent/testing')
 remove_files_with_extensions(r'./python/Lib/site-packages/gevent', ['.html']) # bloated html documentation
 
 log('Uninstalling pip and others')
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'uninstall', '--yes', 'pip', 'wheel'])
+wine_run(['./python/python.exe', '-I', '-m', 'pip', 'uninstall', '--yes', 'uv'])
 
 log('Removing pyc files')   # Have to do this because get-pip and some packages don't respect --no-compile
 remove_files_with_extensions(r'./python', ['.pyc'])
