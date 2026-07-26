@@ -26,7 +26,7 @@ jobs:
           echo "Wine and 7zip is installed"
       - name: Preparing repository
         id: repository-preparation
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setting up latest python
         id: python-setup
         uses: actions/setup-python@v6
