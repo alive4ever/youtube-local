@@ -206,7 +206,8 @@ log('Installing dependencies')
 # Pip's isolated build environment can't import setuptools.build_meta while
 # building stem. Disabling build-isolation allows it to access the
 # setuptools that was installed by get-pip into the embedded directory
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '--no-build-isolation', '-r', './requirements.txt'])
+wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', 'uv'])
+wine_run(['./python/python.exe', '-I', '-m', 'uv', 'pip', 'install', '--no-compile', '--no-build-isolation', '-r', './requirements.txt'])
 
 log('Uninstalling unnecessary gevent stuff')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'uninstall', '--yes', 'cffi', 'pycparser'])
