@@ -76,9 +76,15 @@ Download the zip file under the Releases page. Unzip it anywhere you choose.
 ### Linux/MacOS
 
 Download the tarball under the Releases page and extract it. `cd` into the directory and run
+
 ```
-pip3 install -r requirements.txt
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python server.py
 ```
+
+Depending on your distribution, you may need to use `python3` and `pip3` instead.
 
 **Note**: If pip isn't installed, first try installing it from your package manager. Make sure you install pip for python 3. For example, the package you need on debian is python3-pip rather than python-pip. If your package manager doesn't provide it, try to install it according to [this answer](https://unix.stackexchange.com/a/182467), but make sure you run `python3 get-pip.py` instead of `python get-pip.py`
 
@@ -86,31 +92,9 @@ pip3 install -r requirements.txt
 - RPM-based distros such as Fedora/OpenSUSE/RHEL/CentOS can use the [COPR package](https://copr.fedorainfracloud.org/coprs/anarcoco/youtube-local) maintained by @ByJumperX4
 
 
-### FreeBSD
-
-If pip isn't installed, first try installing it from the package manager:
-```
-pkg install py39-pip
-```
-
-Some packages are unable to compile with pip, install them manually: 
-```
-pkg install py39-gevent py39-sqlite3
-```
-
-Download the tarball under the Releases page and extract it. `cd` into the directory and run
-```
-pip install -r requirements.txt
-```
-
-**Note**: You may have to start the server redirecting its output to /dev/null to avoid I/O errors: 
-```
-python3 ./server.py > /dev/null 2>&1 &
-```
-
 ## Usage
 
-To run the program on windows, open `run.bat`. On Linux/MacOS, run `python3 server.py`.
+To run the program on windows, open `run.bat`. On Linux/MacOS, first activate the virtual environment with `source venv/bin/activate` then run `python server.py`.
 
 **Note for Mac users**: If you installed Python from the installer on python.org, you will need to have run the file `Install Certificates.command` in the directory `Applications/Python 3.x` where `x` is the minor version of python. Otherwise, you will get the error `certificate verify failed: unable to get local issuer certificate`. There is a similar file in that directory you can run to get the `python3` command installed for the terminal.
 
@@ -166,7 +150,7 @@ Supported subscriptions import formats:
 
 ## Contributing
 
-Pull requests and issues are welcome
+Pull requests and issues are welcome. Please do not submit AI generated pull requests or issues.
 
 For coding guidelines and an overview of the software architecture, see the HACKING.md file.
 
