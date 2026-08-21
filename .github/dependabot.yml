@@ -10,3 +10,6 @@ updates:
         - "*"
   exclude-paths:
     - "requirements-py37.txt"
+    - "uv.lock"
+  cooldown:
+    default-days: 30
