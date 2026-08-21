@@ -974,7 +974,7 @@ def get_js_runtime():
         try:
             result = subprocess.run([js_runtime, '--version'], capture_output=True)
             result.check_returncode()
-            print(f'Using runtime: {js_runtime} {result.stdout.decode()}')
+            print(f"Using runtime: {js_runtime} {result.stdout.decode('utf-8')}")
             return js_runtime
         except Exception as err:
             pass
