@@ -12,18 +12,20 @@ import shutil
 import os
 import hashlib
 
-latest_version = sys.argv[1]
+python_version = sys.argv[1]
 if len(sys.argv) > 2:
     bitness = sys.argv[2]
 else:
     bitness = '64'
 
-if latest_version == 'oldwin':
+if python_version == 'oldwin':
     bitness = '32'
-    latest_version = '3.7.9'
+    python_version = '3.7.9'
     suffix = 'windows-vista-7-only'
+    requirements_txt = './requirements-py37.txt'
 else:
     suffix = 'windows'
+    requirements_txt = './requirements.txt'
 
 def check(code):
     if code != 0:
@@ -100,8 +102,9 @@ if len(os.listdir('./youtube-local')) == 0:
 
 # ----------- Generate embedded python distribution -----------
 os.environ['PYTHONDONTWRITEBYTECODE'] = '1'     # *.pyc files double the size of the distribution
-get_pip_url = 'https://bootstrap.pypa.io/get-pip.py'
-latest_dist_url = 'https://www.python.org/ftp/python/' + latest_version + '/python-' + latest_version
+get_pip_url = 'https://bootstrap.pypa.io/pip/3.7/get-pip.py'
+get_pip_sha256 = '5b9e2f9bb476ce76f84942bb7247dec8d6c0bb9dbc8c62ba2543b81fd7a4243c'
+latest_dist_url = 'https://www.python.org/ftp/python/' + python_version + '/python-' + python_version
 if bitness == '32':
     latest_dist_url += '-embed-win32.zip'
 else:
@@ -121,9 +124,9 @@ else:
     visual_c_name = 'vc15_(14.10.25017.0)_2017_x64.7z'
     visual_c_path_to_dlls = 'runtime_minimum/System64'
 
-download_if_not_exists('get-pip.py', get_pip_url)
+download_if_not_exists('get-pip.py', get_pip_url, sha256=get_pip_sha256)
 
-python_dist_name = 'python-dist-' + latest_version + '-' + bitness + '.zip'
+python_dist_name = 'python-dist-' + python_version + '-' + bitness + '.zip'
 
 download_if_not_exists(python_dist_name, latest_dist_url)
 download_if_not_exists(visual_c_name,
@@ -183,7 +186,7 @@ and replaced with a .pth. Isolated mode will have to be specified manually.
 '''
 
 log('Removing ._pth')
-major_release = latest_version.split('.')[1]
+major_release = python_version.split('.')[1]
 os.remove(r'./python/python3' + major_release + '._pth')
 
 log('Adding path_fixes.pth')
@@ -194,7 +197,7 @@ with open(r'./python/path_fixes.pth', 'w', encoding='utf-8') as f:
 r'''# python3x._pth file tells the python executable where to look for files
 #  Need to add the directory where packages are installed,
 # and the parent directory (which is where the youtube-local files are)
-major_release = latest_version.split('.')[1]
+major_release = python_version.split('.')[1]
 with open('./python/python3' + major_release + '._pth', 'a', encoding='utf-8') as f:
     f.write('.\\Lib\\site-packages\n')
     f.write('..\n')'''
@@ -206,7 +209,10 @@ log('Installing dependencies')
 # Pip's isolated build environment can't import setuptools.build_meta while
 # building stem. Disabling build-isolation allows it to access the
 # setuptools that was installed by get-pip into the embedded directory
-wine_run(['./python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile', '--no-build-isolation', '-r', './requirements.txt'])
+wine_run([
+    './python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile',
+    '--no-build-isolation', '--require-hashes', '-r', requirements_txt
+])
 
 log('Uninstalling unnecessary gevent stuff')
 wine_run(['./python/python.exe', '-I', '-m', 'pip', 'uninstall', '--yes', 'cffi', 'pycparser'])
