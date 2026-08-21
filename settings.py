@@ -278,19 +278,11 @@ Archive: https://archive.ph/OZQbN''',
         'category': 'network',
         }),
 
-    ('use_visitor_data', {
-        'label': 'Use visitor data',
-        'type': bool,
-        'default': True,
-        'comment': '''Add X-Goog-Visitor-Id header to outgoing http requests''',
-        'category': 'network',
-        }),
-
     ('use_po_token', {
         'label': 'Use po_token',
         'type': bool,
         'default': False,
-        'comment': '''Use visitor_data and po_token using po-token-generator''',
+        'comment': '''Append po_token for outgoing stream request to prevent 403 errors, requires bgutil-ytdlp-pot-provider listening on localhost:4416''',
         'category': 'network',
         }),
 
