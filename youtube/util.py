@@ -922,18 +922,8 @@ def get_player_version(video_id, headers, ytcfg: {} or None):
 
 def get_visitor_data():
     visitor_data = None
-    if not settings.use_po_token:
-        if not settings.use_visitor_data:
-            return None
     ytcfg = get_ytcfg(client)
-    po_token_cache = os.path.join(settings.data_dir, 'po_token_cache.txt')
     visitor_data_cache = os.path.join(settings.data_dir, 'visitorData.txt')
-    if settings.use_po_token:
-        if os.path.isfile(po_token_cache):
-            with open(po_token_cache, 'r') as file:
-                po_token_dict = json.load(file)
-                visitor_data = po_token_dict.get('visitorData')
-            return visitor_data
     if os.path.isfile(visitor_data_cache):
         with open(visitor_data_cache, 'r') as file:
             visitor_data = file.read()
@@ -953,6 +943,8 @@ def get_visitor_data():
     if visitor_data_match:
         visitor_data = visitor_data_match.group(1)
         print(f'Got visitor_data: {visitor_data}')
+        if not os.path.isdir(settings.data_dir):
+            os.makedirs(settings.data_dir)
         with open(visitor_data_cache, 'w') as file:
             print('Saving visitor_data cache...')
             file.write(visitor_data)
@@ -1035,7 +1027,6 @@ def call_youtube_api(client, api, data):
             # Needed to set correct client version obtained from ytcfg
             context = ytcfg_context
         if settings.use_po_token:
-            # Needed to use correct visitorData from po_token_cache.txt
             context['client']['visitorData'] = visitor_data
     headers = (('Content-Type', 'application/json'),
                ('User-Agent', user_agent),
