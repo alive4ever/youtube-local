@@ -998,7 +998,7 @@ def ejs_decrypt(player_version, nsig, sig=[]):
         raise NameError("No supported js_runtime is found!\nSupported runtimes: deno, bun, node.")
     player_cache = os.path.join(settings.data_dir, f'iframe_api_base_{player_version}.js')
     processed_cache = os.path.join(settings.data_dir, f'processed_{player_version}.js')
-    code_fd, code_tempfile = tempfile.mkstemp(prefix='yt-ejs-', suffix='.js', text=True)
+    code_fd, code_tempfile = tempfile.mkstemp(prefix='yt-ejs-', suffix='.js')
     if not os.path.isfile(processed_cache):
         with open(player_cache, 'r') as file:
             player = file.read()
@@ -1029,11 +1029,11 @@ def ejs_decrypt(player_version, nsig, sig=[]):
     var result = jsc({json.dumps(payload)});
     console.log(JSON.stringify(result));
     '''
-    with open(code_tempfile, 'w') as file:
-        file.write(jscode)
+    with os.fdopen(code_fd, 'wb') as file:
+        file.write(jscode.encode('utf-8'))
     result = subprocess.run([js_runtime, code_tempfile], capture_output=True)
     result.check_returncode()
-    result_json = json.loads(result.stdout.decode())
+    result_json = json.loads(result.stdout.decode('utf-8'))
     if not has_preprocessed:
         with open(processed_cache, 'w') as file:
             file.write(result_json['preprocessed_player'])
