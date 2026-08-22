@@ -1000,12 +1000,12 @@ def ejs_decrypt(player_version, nsig, sig=[]):
     processed_cache = os.path.join(settings.data_dir, f'processed_{player_version}.js')
     code_fd, code_tempfile = tempfile.mkstemp(prefix='yt-ejs-', suffix='.js')
     if not os.path.isfile(processed_cache):
-        with open(player_cache, 'r') as file:
-            player = file.read()
+        with open(player_cache, 'rb') as file:
+            player = file.read().decode('utf-8')
             has_preprocessed = False
     else:
-        with open(processed_cache, 'r') as file:
-            preprocessed_player = file.read()
+        with open(processed_cache, 'rb') as file:
+            preprocessed_player = file.read().decode('utf-8')
             has_preprocessed = True
     payload = {}
     if has_preprocessed:
@@ -1035,8 +1035,8 @@ def ejs_decrypt(player_version, nsig, sig=[]):
     result.check_returncode()
     result_json = json.loads(result.stdout.decode('utf-8'))
     if not has_preprocessed:
-        with open(processed_cache, 'w') as file:
-            file.write(result_json['preprocessed_player'])
+        with open(processed_cache, 'wb') as file:
+            file.write(result_json['preprocessed_player'].encode('utf-8'))
         result_json.pop('preprocessed_player')
     actual_result = result_json['responses']
     os.remove(code_tempfile)
