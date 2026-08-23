@@ -569,6 +569,26 @@ def extract_hls_formats(hls_manifest):
         return [], str(e)
     return hls_formats, None
 
+def _extract_captions(info, player_response):
+    captions_info = player_response.get('captions', {})
+    if captions_info:
+    # Extract base_url from one of the captions by removing lang specifiers
+        base_url = normalize_url(deep_get(
+            captions_info,
+            'playerCaptionsTracklistRenderer',
+            'captionTracks',
+            0,
+            'baseUrl'
+        ))
+        if base_url:
+            url_parts = urllib.parse.urlparse(base_url)
+            qs = urllib.parse.parse_qs(url_parts.query)
+            for key in ('tlang', 'lang', 'name', 'kind', 'fmt'):
+                if key in qs:
+                    del qs[key]
+            base_url = urllib.parse.urlunparse(url_parts._replace(
+                query=urllib.parse.urlencode(qs, doseq=True)))
+            info['_captions_base_url'] = base_url
 
 def _extract_playability_error(info, player_response, error_prefix=''):
     if info['formats']:
@@ -628,27 +648,12 @@ def extract_watch_info(polymer_json):
     info['manual_caption_languages'] = []
     info['_manual_caption_language_names'] = {}     # language name written in that language, needed in some cases to create the url
     info['translation_languages'] = []
-    captions_info = player_response.get('captions', {})
-    info['_captions_base_url'] = normalize_url(deep_get(captions_info, 'playerCaptionsRenderer', 'baseUrl'))
-    # Sometimes the above playerCaptionsRender is randomly missing
-    # Extract base_url from one of the captions by removing lang specifiers
-    if not info['_captions_base_url']:
-        base_url = normalize_url(deep_get(
-            captions_info,
-            'playerCaptionsTracklistRenderer',
-            'captionTracks',
-            0,
-            'baseUrl'
-        ))
-        if base_url:
-            url_parts = urllib.parse.urlparse(base_url)
-            qs = urllib.parse.parse_qs(url_parts.query)
-            for key in ('tlang', 'lang', 'name', 'kind', 'fmt'):
-                if key in qs:
-                    del qs[key]
-            base_url = urllib.parse.urlunparse(url_parts._replace(
-                query=urllib.parse.urlencode(qs, doseq=True)))
-            info['_captions_base_url'] = base_url
+    if not info.get('_captions_base_url'):
+        captions_info = player_response.get('captions', {})
+        info['_captions_base_url'] = normalize_url(deep_get(
+                            captions_info,
+                            'playerCaptionsRenderer',
+                            'baseUrl'))
     for caption_track in deep_get(captions_info, 'playerCaptionsTracklistRenderer', 'captionTracks', default=()):
         lang_code = caption_track.get('languageCode')
         if not lang_code:
@@ -851,6 +856,7 @@ def update_with_new_urls(info, player_response):
         return
 
     _extract_formats(info, player_response)
+    _extract_captions(info, player_response)
     _extract_playability_error(info, player_response, error_prefix=ERROR_PREFIX)
 
 def requires_decryption(info):
