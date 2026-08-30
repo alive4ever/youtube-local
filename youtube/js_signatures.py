@@ -6,7 +6,11 @@ import re
 import tempfile
 import time
 import settings
-from yt_dlp_ejs.yt import solver
+try:
+    from yt_dlp_ejs.yt import solver
+    has_solver = True
+except ImportError:
+    has_solver = False
 from youtube.util import fetch_url
 from youtube.pot_provider import get_po_token
 
@@ -22,6 +26,10 @@ def get_js_runtime():
     return None
 
 js_runtime = get_js_runtime()
+js_decryption_possible = has_solver and js_runtime is not None
+
+if not js_decryption_possible:
+    print('Warning: js client is not usable, will fall back to non js client for player api requests.')
 
 def get_player_info(video_id):
     iframe_api = 'https://www.youtube.com/iframe_api'+f'?videoId={video_id}'
@@ -74,6 +82,9 @@ def extract_signatures(json_resp):
     return nsig_list, sig_list, sp, formats
 
 def decrypt_signatures(client, player_version, json_resp):
+    if not has_solver:
+        print('Warning: unable to perform signature decryption because yt-dlp-ejs is not installed')
+        return json_resp
     start = time.perf_counter()
     nsig_list, sig_list, sp, formats = extract_signatures(json_resp)
     try:
@@ -84,6 +95,8 @@ def decrypt_signatures(client, player_version, json_resp):
     # Query transformation steps
     video_id = json_resp['videoDetails']['videoId']
     po_token = get_po_token(client, video_id)
+    if po_token is None:
+        print('Warning: unable to obtain po_token, stream will be unplayable after one minute')
     for item in formats:
         parsed_url = urllib.parse.urlparse(item['url'])
         query_param = urllib.parse.parse_qsl(parsed_url.query)
@@ -99,7 +112,8 @@ def decrypt_signatures(client, player_version, json_resp):
         if sig and sp:
             # print(f"{ item['itag']} s: {sig} → {result[1]['data'].get(sig)}")
             query_param_dict[sp] = result[1]['data'].get(sig)
-        query_param_dict['pot'] = po_token
+        if po_token:
+            query_param_dict['pot'] = po_token
         item['url'] = urllib.parse.urlunparse(
                 (parsed_url.scheme,
                  parsed_url.hostname,
