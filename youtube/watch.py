@@ -372,9 +372,13 @@ def fetch_watch_page_info(video_id, playlist_id, index):
 def extract_info(video_id, use_invidious, playlist_id=None, index=None):
     player_clients = ('visionos', 'mweb')
     client = player_clients[settings.player_client]
-    if util.INNERTUBE_CLIENTS[client]['REQUIRE_JS_PLAYER']:
+    js_client = util.INNERTUBE_CLIENTS[client]['REQUIRE_JS_PLAYER']
+    if js_client and js_signatures.js_decryption_possible:
+        # Get player version and signatureTimestamp for js_client to be usable
         player_version, sts = js_signatures.get_player_info(video_id)
     else:
+        # Fall back to non js client
+        client = player_clients[0]
         player_version, sts = None, None
     tasks = (
         # Get video metadata from here
@@ -386,7 +390,7 @@ def extract_info(video_id, use_invidious, playlist_id=None, index=None):
     gevent.joinall(tasks)
     util.check_gevent_exceptions(*tasks)
     info, player_response = tasks[0].value, tasks[1].value
-    if util.INNERTUBE_CLIENTS[client]['REQUIRE_JS_PLAYER']:
+    if js_client and js_signatures.js_decryption_possible:
         decrypted_response = js_signatures.decrypt_signatures(client, player_version, json.loads(player_response))
         player_response = json.dumps(decrypted_response)
 
