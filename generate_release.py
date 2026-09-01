@@ -210,8 +210,10 @@ log('Installing dependencies')
 # building stem. Disabling build-isolation allows it to access the
 # setuptools that was installed by get-pip into the embedded directory
 wine_run([
-    './python/python.exe', '-I', '-m', 'pip', 'install', '--no-compile',
-    '--no-build-isolation', '--require-hashes', '-r', requirements_txt
+    './python/python.exe', '-I', '-m', 'pip', 'install', 'uv'
+])
+wine_run([
+    './python/python.exe', '-I', '-m', 'uv', 'pip', 'install', '-r', requirements_txt
 ])
 
 log('Uninstalling unnecessary gevent stuff')
