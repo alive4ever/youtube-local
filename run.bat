@@ -13,6 +13,6 @@ REM  This is so brotli and gevent search in the python directory for the
 REM  visual studio c++ runtime dlls
 set PATH=.\python;%PATH%
 
-.\python\python.exe -I .\server.py
+.\python\python.exe -m waitress --host localhost --port 8080 server:application
 echo Press any key to quit...
 PAUSE > nul
