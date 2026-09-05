@@ -213,7 +213,7 @@ wine_run([
     './python/python.exe', '-I', '-m', 'pip', 'install', 'uv'
 ])
 wine_run([
-    './python/python.exe', '-I', '-m', 'uv', 'pip', 'install', '-r', requirements_txt
+    './python/python.exe', '-I', '-m', 'uv', 'pip', 'install', '-r', requirements_txt, 'waitress'
 ])
 
 log('Uninstalling unnecessary gevent stuff')
